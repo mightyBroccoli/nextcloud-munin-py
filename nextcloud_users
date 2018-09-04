@@ -2,9 +2,10 @@
 # -*- coding: utf-8 -*-
 import requests
 import sys
+import os
 
-URL = 'https://URL.TO.YOUR.NEXTCLOUD.tld/ocs/v2.php/apps/serverinfo/api/v1/info'
-auth = ('username', 'password or logintoken')
+URL = os.environ['url']
+auth = (os.environ['username'], os.environ['password'])
 
 
 class NextcloudUsers:

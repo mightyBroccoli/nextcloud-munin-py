@@ -2,12 +2,14 @@
 Some basic Munin Plugins gathering information from the NextCloud external API.
 
 ## install
-To use these Plugins one has to add his specific URL and credential to the script.
+To use these plugins properly some configuration parameters need to be added to the plugin-config `/etc/munin/plugin-config.d/munin-node`. 
 ```
-URL = 'https://URL.TO.YOUR.NEXTCLOUD.tld/ocs/v2.php/apps/serverinfo/api/v1/info'
-auth = ('username', 'password or logintoken')
+[nextcloud_*]
+url = https://URL.TO.YOUR.NEXTCLOUD.tld/ocs/v2.php/apps/serverinfo/api/v1/info
+username = username
+password = password or logintoken
 ```
-If these are correct the script needs to be placed in the munin directory eg. `/etc/munin/plugins/`
+After that the script needs to be placed in the munin plugin directory eg. `/etc/munin/plugins/`
 
 The munin-node needs to be restarted to facilitate the new plugins.
 `systemctl restart munin-node`
