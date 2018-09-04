@@ -1,0 +1,62 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+import re
+import requests
+import sys
+
+URL = 'https://URL.TO.YOUR.NEXTCLOUD.tld/ocs/v2.php/apps/serverinfo/api/v1/info'
+auth = ('username', 'password or logintoken')
+
+
+class NextcloudShares:
+	if (sys.argv.__len__() == 2) and (sys.argv[1] == "config"):
+		print('graph_title Nextcloud Shares')
+		print('graph_args --base 1024 -l 0')
+		print('graph_vlabel number of shares')
+		print('graph_info graph showing the number of shares')
+		print('graph_category nextcloud')
+
+		print('num_fed_shares_received.label federated shares recieved')
+		print('num_fed_shares_sent.label federated shares sent')
+		print('num_shares.label total number of shares')
+		print('num_shares_groups.label group shares')
+		print('num_shares_link.label link shares')
+		print('num_shares_link_no_password.label link shares without a password')
+		print('num_shares_user.label user shares')
+	else:
+		# init requests session with specific header and credentials
+		s = requests.Session()
+		s.auth = auth
+		s.headers.update({'Accept': 'application/json'})
+
+		# request data from api
+		r = s.get(URL)
+
+		# if status code is successful continue
+		if r.status_code == 200:
+			api_response = r.json()
+			shares = api_response['ocs']['data']['nextcloud']['shares']
+
+			# use regex to remove permission stats from api response
+			reg = re.compile("num.*")
+			share_keys = shares.keys()
+			sharelist = list(filter(reg.match, share_keys))
+
+			result = list()
+			for key in sharelist:
+				result.append(str(key) + ".value " + str(shares[key]))
+			print("\n".join(result))
+
+		elif r.status_code == 996:
+			print('server error')
+		elif r.status_code == 997:
+			print('not authorized')
+		elif r.status_code == 998:
+			print('not found')
+		else:
+			print('unknown error')
+
+
+if __name__ == "__main__":
+	NextcloudShares()
+	quit(0)
