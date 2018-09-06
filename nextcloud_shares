@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
+# Plugin to monitor the amount shares to and from the specified nextcloud instance
+#
+# Parameters understood:
+#     config   (required)
+#     autoconf (optional - used by munin-config)
+#
+# Magic markers - optional - used by installation scripts and
+# munin-config:
+#
+#  #%# family=manual
+#  #%# capabilities=autoconf
 import re
 import requests
 import sys
 import os
-
-URL = os.environ['url']
-auth = (os.environ['username'], os.environ['password'])
 
 
 class NextcloudShares:
@@ -18,13 +27,31 @@ class NextcloudShares:
 		print('graph_category nextcloud')
 
 		print('num_fed_shares_received.label federated shares recieved')
+		print('num_fed_shares_received.info current total of federated shares recieved')
 		print('num_fed_shares_sent.label federated shares sent')
+		print('num_fed_shares_received.info current total of federated shares sent')
 		print('num_shares.label total number of shares')
+		print('num_shares.info current over all total of shares')
 		print('num_shares_groups.label group shares')
+		print('num_shares_groups.info current total of group shares')
 		print('num_shares_link.label link shares')
+		print('num_shares_link.info current total of shares through a link')
 		print('num_shares_link_no_password.label link shares without a password')
+		print('num_shares_link_no_password.info current total of shares through a link without a password protection')
 		print('num_shares_user.label user shares')
+		print('num_shares_user.info current total of user shares')
+	elif (sys.argv.__len__() == 2) and (sys.argv[1] == 'autoconf'):
+		# check host if env variables are set
+		try:
+			if None not in {os.environ['url'], os.environ['username'], os.environ['password']}:
+				print('yes')
+		except KeyError as e:
+			print('no configuration options are missing: %s' % e)
 	else:
+		# read the configuration from munin environment
+		URL = os.environ['url']
+		auth = (os.environ['username'], os.environ['password'])
+
 		# init requests session with specific header and credentials
 		s = requests.Session()
 		s.auth = auth
@@ -33,8 +60,9 @@ class NextcloudShares:
 		# request data from api
 		r = s.get(URL)
 
-		# if status code is successful continue
+		# if status code is successful close connection and continue
 		if r.status_code == 200:
+			s.close()
 			api_response = r.json()
 			shares = api_response['ocs']['data']['nextcloud']['shares']
 

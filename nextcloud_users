@@ -1,25 +1,49 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+#
+# Plugin to monitor the amount of users sucessfully logging in to the specified nextcloud instance
+#
+# Parameters understood:
+#     config   (required)
+#     autoconf (optional - used by munin-config)
+#
+# Magic markers - optional - used by installation scripts and
+# munin-config:
+#
+#  #%# family=manual
+#  #%# capabilities=autoconf
 import requests
 import sys
 import os
-
-URL = os.environ['url']
-auth = (os.environ['username'], os.environ['password'])
 
 
 class NextcloudUsers:
 	if (sys.argv.__len__() == 2) and (sys.argv[1] == "config"):
 		print('graph_title Nextcloud User Activity')
 		print('graph_args --base 1024 -l 0')
+		print('graph_printf %.0lf')
 		print('graph_vlabel connected users')
 		print('graph_info graph showing the number of connected user')
 		print('graph_category nextcloud')
 
 		print('last5minutes.label last 5 minutes')
+		print('last5minutes.info users connected in the last 5 minutes')
 		print('last1hour.label last hour')
+		print('last1hour.info users connected in the last hour')
 		print('last24hours.label last 24 hours')
+		print('last24.hours.info users connected in the last 24 hours')
+	elif (sys.argv.__len__() == 2) and (sys.argv[1] == 'autoconf'):
+		# check host if env variables are set
+		try:
+			if None not in {os.environ['url'], os.environ['username'], os.environ['password']}:
+				print('yes')
+		except KeyError as e:
+			print('no configuration options are missing: %s' % e)
 	else:
+		# read the configuration from munin environment
+		URL = os.environ['url']
+		auth = (os.environ['username'], os.environ['password'])
+
 		# init requests session with specific header and credentials
 		s = requests.Session()
 		s.auth = auth
@@ -28,8 +52,9 @@ class NextcloudUsers:
 		# request data from api
 		r = s.get(URL)
 
-		# if status code is successful continue
+		# if status code is successful close connection and continue
 		if r.status_code == 200:
+			s.close()
 			api_response = r.json()
 			users = api_response['ocs']['data']['activeUsers']
 
