@@ -29,7 +29,7 @@ class NextcloudShares:
 		print('num_fed_shares_received.label federated shares recieved')
 		print('num_fed_shares_received.info current total of federated shares recieved')
 		print('num_fed_shares_sent.label federated shares sent')
-		print('num_fed_shares_received.info current total of federated shares sent')
+		print('num_fed_shares_sent.info current total of federated shares sent')
 		print('num_shares.label total number of shares')
 		print('num_shares.info current over all total of shares')
 		print('num_shares_groups.label group shares')

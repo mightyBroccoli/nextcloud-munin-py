@@ -31,7 +31,7 @@ class NextcloudUsers:
 		print('last1hour.label last hour')
 		print('last1hour.info users connected in the last hour')
 		print('last24hours.label last 24 hours')
-		print('last24.hours.info users connected in the last 24 hours')
+		print('last24hours.info users connected in the last 24 hours')
 	elif (sys.argv.__len__() == 2) and (sys.argv[1] == 'autoconf'):
 		# check host if env variables are set
 		try:
