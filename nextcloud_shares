@@ -45,8 +45,8 @@ class NextcloudShares:
 		try:
 			if None not in {os.environ['url'], os.environ['username'], os.environ['password']}:
 				print('yes')
-		except KeyError as e:
-			print('no configuration options are missing: %s' % e)
+		except KeyError:
+			print('no env configuration options are missing')
 	else:
 		# read the configuration from munin environment
 		URL = os.environ['url']
