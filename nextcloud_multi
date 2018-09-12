@@ -59,7 +59,7 @@ class APIExtract:
 
 	def apps(self):
 		num_updates_available = self.api_response['ocs']['data']['nextcloud']['system']['apps']['num_updates_available']
-		self.result.append('multigraph nextcloud_apps')
+		self.result.append('multigraph nextcloud_pending_updates')
 		self.result.append('num_updates_available.value %s' % num_updates_available)
 
 		return self.result
