@@ -44,7 +44,6 @@ class NextcloudUsers:
 		}
 		users  = api_response['ocs']['data']['activeUsers']
 
-		data['nextcloud_users'].append('multigraph nextcloud_users')
 		for key in users.keys():
 			data['nextcloud_users'].append(str(key) + ".value " + str(users[key]))
 

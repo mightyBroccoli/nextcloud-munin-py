@@ -57,7 +57,6 @@ class NextcloudShares:
 		share_keys = shares.keys()
 		sharelist = list(filter(reg.match, share_keys))
 
-		data['nextcloud_shares'].append('multigraph nextcloud_shares')
 		for key in sharelist:
 			data['nextcloud_shares'].append(str(key) + ".value " + str(shares[key]))
 
