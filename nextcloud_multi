@@ -22,116 +22,109 @@ import os
 import re
 
 
-class APIExtract:
-	def __init__(self, result, api_repsonse):
-		self.api_response = api_repsonse
-		self.result = result
+class NextcloudMultiGraph:
+	def config(self):
+		config = {
+			'users': [
+				'multigraph nextcloud_users',
+				'graph_title Nextcloud User Activity',
+				'graph_args --base 1024 -l 0',
+				'graph_printf %.0lf',
+				'graph_vlabel connected users',
+				'graph_info graph showing the number of connected user',
+				'graph_category nextcloud',
+				'last5minutes.label last 5 minutes',
+				'last5minutes.info users connected in the last 5 minutes',
+				'last1hour.label last hour',
+				'last1hour.info users connected in the last hour',
+				'last24hours.label last 24 hours',
+				'last24hours.info users connected in the last 24 hours'
+			],
+			'shares': [
+				'multigraph nextcloud_shares',
+				'graph_title Nextcloud Shares',
+				'graph_args --base 1024 -l 0',
+				'graph_vlabel number of shares',
+				'graph_info graph showing the number of shares',
+				'graph_category nextcloud',
+				'num_fed_shares_received.label federated shares recieved',
+				'num_fed_shares_received.info current total of federated shares recieved',
+				'num_fed_shares_sent.label federated shares sent',
+				'num_fed_shares_sent.info current total of federated shares sent',
+				'num_shares.label total number of shares',
+				'num_shares.info current over all total of shares',
+				'num_shares_groups.label group shares',
+				'num_shares_groups.info current total of group shares',
+				'num_shares_link.label link shares',
+				'num_shares_link.info current total of shares through a link',
+				'num_shares_link_no_password.label link shares without a password',
+				'num_shares_link_no_password.info current total of shares through a link without a password protection',
+				'num_shares_user.label user shares',
+				'num_shares_user.info current total of user shares'
+			],
+			'dbsize': [
+				'multigraph nextcloud_dbsize',
+				'graph_title Nextcloud Database Size',
+				'graph_args --base 1024 -l 0',
+				'graph_vlabel size in byte',
+				'graph_info graph showing the database size in byte',
+				'graph_category nextcloud',
+				'db_size.label database size in byte',
+				'db_size.info users connected in the last 5 minutes',
+				'db_size.draw AREA',
+			],
+			'available_updates': [
+				'multigraph nextcloud_available_updates',
+				'graph_title Nextcloud available App updates',
+				'graph_args --base 1024 -l 0',
+				'graph_vlabel updates available',
+				'graph_info graph showing the number of available app updates',
+				'graph_category nextcloud',
+				'num_updates_available.label available app updates',
+				'num_updates_available.info number of available app updates',
+			]
+		}
 
-	def user_activity(self):
-		users = self.api_response['ocs']['data']['activeUsers']
+		return config
 
-		self.result.append('multigraph nextcloud_users')
+	def get_data(self, api_response):
+		data ={
+			'nextcloud_users': [],
+			'nextcloud_shares': [],
+			'nextcloud_dbsize': [],
+			'nextcloud_available_updates': []
+		}
+		users  = api_response['ocs']['data']['activeUsers']
+		shares = api_response['ocs']['data']['nextcloud']['shares']
+		dbsize = api_response['ocs']['data']['server']['database']['size']
+
+		data['nextcloud_users'].append('multigraph nextcloud_users')
 		for key in users.keys():
-			self.result.append(str(key) + ".value " + str(users[key]))
-
-		return self.result
-
-	def shares(self):
-		shares = self.api_response['ocs']['data']['nextcloud']['shares']
+			data['nextcloud_users'].append(str(key) + ".value " + str(users[key]))
 
 		# use regex to remove permission stats from api response
 		reg = re.compile("num.*")
 		share_keys = shares.keys()
 		sharelist = list(filter(reg.match, share_keys))
 
-		self.result.append('multigraph nextcloud_shares')
+		data['nextcloud_shares'].append('multigraph nextcloud_shares')
 		for key in sharelist:
-			self.result.append(str(key) + ".value " + str(shares[key]))
+			data['nextcloud_shares'].append(str(key) + ".value " + str(shares[key]))
 
-		return self.result
+		data['nextcloud_dbsize'].append('multigraph nextcloud_dbsize')
+		data['nextcloud_dbsize'].append('db_size.value %s' % dbsize)
 
-	def dbsize(self):
-		dbsize = self.api_response['ocs']['data']['server']['database']['size']
-		self.result.append('multigraph nextcloud_dbsize')
-		self.result.append('db_size.value %s' % dbsize)
-
-		return self.result
-
-	def apps(self):
-		num_updates_available = self.api_response['ocs']['data']['nextcloud']['system']['apps']['num_updates_available']
-		self.result.append('multigraph nextcloud_pending_updates')
-		self.result.append('num_updates_available.value %s' % num_updates_available)
-
-		return self.result
-
-
-class NextcloudMultiGraph:
-	if (sys.argv.__len__() == 2) and (sys.argv[1] == "config"):
-		print('multigraph nextcloud_users')
-		print('graph_title Nextcloud User Activity')
-		print('graph_args --base 1024 -l 0')
-		print('graph_printf %.0lf')
-		print('graph_vlabel connected users')
-		print('graph_info graph showing the number of connected user')
-		print('graph_category nextcloud')
-
-		print('last5minutes.label last 5 minutes')
-		print('last5minutes.info users connected in the last 5 minutes')
-		print('last1hour.label last hour')
-		print('last1hour.info users connected in the last hour')
-		print('last24hours.label last 24 hours')
-		print('last24hours.info users connected in the last 24 hours')
-
-		print('multigraph nextcloud_dbsize')
-		print('graph_title Nextcloud Database Size')
-		print('graph_args --base 1024 -l 0')
-		print('graph_vlabel size in byte')
-		print('graph_info graph showing the database size in byte')
-		print('graph_category nextcloud')
-
-		print('db_size.label database size in byte')
-		print('db_size.info users connected in the last 5 minutes')
-		print('db_size.draw AREA')
-
-		print('multigraph nextcloud_pending_updates')
-		print('graph_title Nextcloud pending App updates')
-		print('graph_args --base 1024 -l 0')
-		print('graph_vlabel updates pending')
-		print('graph_info graph showing the number of available app updates')
-		print('graph_category nextcloud')
-
-		print('num_updates_available.label available app updates')
-		print('num_updates_available.info number of available app updates')
-
-		print('multigraph nextcloud_shares')
-		print('graph_title Nextcloud Shares')
-		print('graph_args --base 1024 -l 0')
-		print('graph_vlabel number of shares')
-		print('graph_info graph showing the number of shares')
-		print('graph_category nextcloud')
-
-		print('num_fed_shares_received.label federated shares recieved')
-		print('num_fed_shares_received.info current total of federated shares recieved')
-		print('num_fed_shares_sent.label federated shares sent')
-		print('num_fed_shares_sent.info current total of federated shares sent')
-		print('num_shares.label total number of shares')
-		print('num_shares.info current over all total of shares')
-		print('num_shares_groups.label group shares')
-		print('num_shares_groups.info current total of group shares')
-		print('num_shares_link.label link shares')
-		print('num_shares_link.info current total of shares through a link')
-		print('num_shares_link_no_password.label link shares without a password')
-		print('num_shares_link_no_password.info current total of shares through a link without a password protection')
-		print('num_shares_user.label user shares')
-		print('num_shares_user.info current total of user shares')
-	elif (sys.argv.__len__() == 2) and (sys.argv[1] == 'autoconf'):
-		# check host if env variables are set
+		# precaution for Nextcloud versions prior to version 14
 		try:
-			if None not in {os.environ['url'], os.environ['username'], os.environ['password']}:
-				print('yes')
+			num_updates_available = api_response['ocs']['data']['nextcloud']['system']['apps']['num_updates_available']
+			data['nextcloud_available_updates'].append('multigraph nextcloud_available_updates')
+			data['nextcloud_available_updates'].append('num_updates_available.value %s' % num_updates_available)
 		except KeyError:
-			print('no env configuration options are missing')
-	else:
+			return False
+
+		return data
+
+	def run(self):
 		# read the configuration from munin environment
 		URL = os.environ['url']
 		auth = (os.environ['username'], os.environ['password'])
@@ -150,14 +143,11 @@ class NextcloudMultiGraph:
 			s.close()
 			api_response = r.json()
 
-			result = list()
-			extract = APIExtract(result, api_response)
-			extract.user_activity()
-			extract.dbsize()
-			extract.shares()
-			extract.apps()
+			result = self.get_data(api_response)
 
-			print('\n'.join(result))
+			for key in result.keys():
+				print('\n'.join(result[key]))
+
 		elif r.status_code == 996:
 			print('server error')
 		elif r.status_code == 997:
@@ -167,7 +157,27 @@ class NextcloudMultiGraph:
 		else:
 			print('unknown error')
 
+	def main(self):
+		if (sys.argv.__len__() == 2) and (sys.argv[1] == "config"):
+			for key in self.config().keys():
+				print('\n'.join(self.config()[key]))
+			try:
+				if os.environ['MUNIN_CAP_DIRTYCONFIG'] == '1':
+					self.run()
+			except KeyError:
+				pass
+
+		elif (sys.argv.__len__() == 2) and (sys.argv[1] == 'autoconf'):
+			# check host if env variables are set
+			try:
+				if None not in {os.environ['url'], os.environ['username'], os.environ['password']}:
+					print('yes')
+			except KeyError:
+				print('no env configuration options are missing')
+		else:
+			self.run()
+
 
 if __name__ == "__main__":
-	NextcloudMultiGraph()
+	NextcloudMultiGraph().main()
 	quit(0)
