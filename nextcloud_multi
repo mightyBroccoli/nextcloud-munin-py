@@ -28,39 +28,49 @@ class NextcloudMultiGraph:
 			'users': [
 				'multigraph nextcloud_users',
 				'graph_title Nextcloud User Activity',
-				'graph_args --base 1024 -l 0',
+				'graph_args --base 1000 -l 0',
 				'graph_printf %.0lf',
 				'graph_vlabel connected users',
 				'graph_info graph showing the number of connected user',
 				'graph_category nextcloud',
 				'last5minutes.label last 5 minutes',
 				'last5minutes.info users connected in the last 5 minutes',
+				'last5minutes.min 0',
 				'last1hour.label last hour',
 				'last1hour.info users connected in the last hour',
+				'last1hour.min 0',
 				'last24hours.label last 24 hours',
-				'last24hours.info users connected in the last 24 hours'
+				'last24hours.info users connected in the last 24 hours',
+				'last24hours.min 0'
 			],
 			'shares': [
 				'multigraph nextcloud_shares',
 				'graph_title Nextcloud Shares',
-				'graph_args --base 1024 -l 0',
+				'graph_args --base 1000 -l 0',
 				'graph_vlabel number of shares',
 				'graph_info graph showing the number of shares',
 				'graph_category nextcloud',
 				'num_fed_shares_received.label federated shares recieved',
 				'num_fed_shares_received.info current total of federated shares recieved',
+				'num_fed_shares_received.min 0',
 				'num_fed_shares_sent.label federated shares sent',
 				'num_fed_shares_sent.info current total of federated shares sent',
+				'num_fed_shares_sent.min 0',
 				'num_shares.label total number of shares',
 				'num_shares.info current over all total of shares',
+				'num_shares.min 0',
 				'num_shares_groups.label group shares',
 				'num_shares_groups.info current total of group shares',
+				'num_shares_groups.min 0',
 				'num_shares_link.label link shares',
 				'num_shares_link.info current total of shares through a link',
+				'num_shares_link.min 0',
 				'num_shares_link_no_password.label link shares without a password',
 				'num_shares_link_no_password.info current total of shares through a link without a password protection',
+				'num_shares_link_no_password.min 0',
 				'num_shares_user.label user shares',
-				'num_shares_user.info current total of user shares'
+				'num_shares_user.info current total of user shares',
+				'num_shares_user.min 0'
 			],
 			'dbsize': [
 				'multigraph nextcloud_dbsize',
@@ -72,16 +82,18 @@ class NextcloudMultiGraph:
 				'db_size.label database size in byte',
 				'db_size.info users connected in the last 5 minutes',
 				'db_size.draw AREA',
+				'db_size.min 0'
 			],
 			'available_updates': [
 				'multigraph nextcloud_available_updates',
 				'graph_title Nextcloud available App updates',
-				'graph_args --base 1024 -l 0',
+				'graph_args --base 1000 -l 0',
 				'graph_vlabel updates available',
 				'graph_info graph showing the number of available app updates',
 				'graph_category nextcloud',
 				'num_updates_available.label available app updates',
 				'num_updates_available.info number of available app updates',
+				'num_updates_available.min 0'
 			]
 		}
 
@@ -115,65 +127,56 @@ class NextcloudMultiGraph:
 		data['nextcloud_dbsize'].append('db_size.value %s' % dbsize)
 
 		# precaution for Nextcloud versions prior to version 14
-		try:
+		version = api_response['ocs']['data']['nextcloud']['system']['version'].split(sep=".")
+
+		if int(version[0]) >= 14:
 			num_updates_available = api_response['ocs']['data']['nextcloud']['system']['apps']['num_updates_available']
-			data['nextcloud_available_updates'].append('multigraph nextcloud_available_updates')
 			data['nextcloud_available_updates'].append('num_updates_available.value %s' % num_updates_available)
-		except KeyError:
-			return False
 
 		return data
 
 	def run(self):
-		# read the configuration from munin environment
-		URL = os.environ['url']
-		auth = (os.environ['username'], os.environ['password'])
-
 		# init requests session with specific header and credentials
 		with requests.Session() as s:
-			s.auth = auth
+			# read credentials from env
+			s.auth = (os.environ.get('username'), os.environ.get('password'))
+
+			# update header for json
 			s.headers.update({'Accept': 'application/json'})
-			s.stream = False
 
-			# request data from api
-			r = s.get(URL)
+			# request the data
+			r = s.get(os.environ.get('url'))
 
-		# if status code is successful close connection and continue
-		if r.status_code == 200:
-			s.close()
-			api_response = r.json()
+			# if status code is successful continue
+			if r.status_code == 200:
+				api_response = r.json()
+				result = self.get_data(api_response)
 
-			result = self.get_data(api_response)
+				for key in result.keys():
+					print('\n'.join(result[key]))
 
-			for key in result.keys():
-				print('\n'.join(result[key]))
-
-		elif r.status_code == 996:
-			print('server error')
-		elif r.status_code == 997:
-			print('not authorized')
-		elif r.status_code == 998:
-			print('not found')
-		else:
-			print('unknown error')
+			elif r.status_code == 996:
+				print('server error')
+			elif r.status_code == 997:
+				print('not authorized')
+			elif r.status_code == 998:
+				print('not found')
+			else:
+				print('unknown error')
 
 	def main(self):
-		if (sys.argv.__len__() == 2) and (sys.argv[1] == "config"):
-			for key in self.config().keys():
-				print('\n'.join(self.config()[key]))
-			try:
-				if os.environ['MUNIN_CAP_DIRTYCONFIG'] == '1':
+		# check if first argument is config or autoconf if not fetch data
+		if sys.argv.__len__() >= 2:
+			if sys.argv[1] == "config":
+				for key in self.config().keys():
+					print('\n'.join(self.config()[key]))
+				if os.environ.get('MUNIN_CAP_DIRTYCONFIG') == '1':
 					self.run()
-			except KeyError:
-				pass
-
-		elif (sys.argv.__len__() == 2) and (sys.argv[1] == 'autoconf'):
-			# check host if env variables are set
-			try:
-				if None not in {os.environ['url'], os.environ['username'], os.environ['password']}:
+			elif sys.argv[1] == 'autoconf':
+				if None in [os.environ.get('username'), os.environ.get('password')]:
+					print('env variables are missing')
+				else:
 					print('yes')
-			except KeyError:
-				print('no env configuration options are missing')
 		else:
 			self.run()
 

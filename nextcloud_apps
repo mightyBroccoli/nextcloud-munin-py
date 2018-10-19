@@ -22,12 +22,13 @@ class NextcloudApps:
 		config = {
 			'apps': [
 				'graph_title Nextcloud available App updates',
-				'graph_args --base 1024 -l 0',
+				'graph_args --base 1000 -l 0',
 				'graph_vlabel updates available',
 				'graph_info graph showing the number of available app updates',
 				'graph_category nextcloud',
 				'num_updates_available.label available app updates',
-				'num_updates_available.info number of available app updates'
+				'num_updates_available.info number of available app updates',
+				'num_updates_available.min 0'
 			]
 		}
 
@@ -39,64 +40,56 @@ class NextcloudApps:
 		}
 
 		# precaution for Nextcloud versions prior to version 14
-		try:
+		version = api_response['ocs']['data']['nextcloud']['system']['version'].split(sep=".")
+
+		if int(version[0]) >= 14:
 			num_updates_available = api_response['ocs']['data']['nextcloud']['system']['apps']['num_updates_available']
 			data['nextcloud_available_updates'].append('num_updates_available.value %s' % num_updates_available)
-		except KeyError:
-			return False
 
 		return data
 
 	def run(self):
-		# read the configuration from munin environment
-		URL = os.environ['url']
-		auth = (os.environ['username'], os.environ['password'])
-
 		# init requests session with specific header and credentials
 		with requests.Session() as s:
-			s.auth = auth
+			# read credentials from env
+			s.auth = (os.environ.get('username'), os.environ.get('password'))
+
+			# update header for json
 			s.headers.update({'Accept': 'application/json'})
-			s.stream = False
 
-			# request data from api
-			r = s.get(URL)
+			# request the data
+			r = s.get(os.environ.get('url'))
 
-		# if status code is successful close connection and continue
-		if r.status_code == 200:
-			s.close()
-			api_response = r.json()
+			# if status code is successful continue
+			if r.status_code == 200:
+				api_response = r.json()
+				result = self.get_data(api_response)
 
-			result = self.get_data(api_response)
+				for key in result.keys():
+					print('\n'.join(result[key]))
 
-			for key in result.keys():
-				print('\n'.join(result[key]))
-
-		elif r.status_code == 996:
-			print('server error')
-		elif r.status_code == 997:
-			print('not authorized')
-		elif r.status_code == 998:
-			print('not found')
-		else:
-			print('unknown error')
+			elif r.status_code == 996:
+				print('server error')
+			elif r.status_code == 997:
+				print('not authorized')
+			elif r.status_code == 998:
+				print('not found')
+			else:
+				print('unknown error')
 
 	def main(self):
-		if (sys.argv.__len__() == 2) and (sys.argv[1] == "config"):
-			for key in self.config().keys():
-				print('\n'.join(self.config()[key]))
-			try:
-				if os.environ['MUNIN_CAP_DIRTYCONFIG'] == '1':
+		# check if first argument is config or autoconf if not fetch data
+		if sys.argv.__len__() >= 2:
+			if sys.argv[1] == "config":
+				for key in self.config().keys():
+					print('\n'.join(self.config()[key]))
+				if os.environ.get('MUNIN_CAP_DIRTYCONFIG') == '1':
 					self.run()
-			except KeyError:
-				pass
-
-		elif (sys.argv.__len__() == 2) and (sys.argv[1] == 'autoconf'):
-			# check host if env variables are set
-			try:
-				if None not in {os.environ['url'], os.environ['username'], os.environ['password']}:
+			elif sys.argv[1] == 'autoconf':
+				if None in [os.environ.get('username'), os.environ.get('password')]:
+					print('env variables are missing')
+				else:
 					print('yes')
-			except KeyError:
-				print('no env configuration options are missing')
 		else:
 			self.run()
 
