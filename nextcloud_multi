@@ -19,7 +19,6 @@
 import requests
 import sys
 import os
-import re
 
 
 class NextcloudMultiGraph:
@@ -100,43 +99,47 @@ class NextcloudMultiGraph:
 		return config
 
 	def get_data(self, api_response):
-		data ={
+		data = {
 			'nextcloud_users': [],
 			'nextcloud_shares': [],
 			'nextcloud_dbsize': [],
 			'nextcloud_available_updates': []
 		}
+
+		# users
 		users  = api_response['ocs']['data']['activeUsers']
-		shares = api_response['ocs']['data']['nextcloud']['shares']
-		dbsize = api_response['ocs']['data']['server']['database']['size']
-
 		data['nextcloud_users'].append('multigraph nextcloud_users')
-		for key in users.keys():
-			data['nextcloud_users'].append(str(key) + ".value " + str(users[key]))
 
-		# use regex to remove permission stats from api response
-		reg = re.compile("num.*")
-		share_keys = shares.keys()
-		sharelist = list(filter(reg.match, share_keys))
+		# append for every key in users the key and the value to the results
+		[data['nextcloud_users'].append(str(key) + ".value " + str(users[key]))
+			for key in users.keys()]
 
+		# shares
+		shares = api_response['ocs']['data']['nextcloud']['shares']
 		data['nextcloud_shares'].append('multigraph nextcloud_shares')
-		for key in sharelist:
-			data['nextcloud_shares'].append(str(key) + ".value " + str(shares[key]))
 
+		# append for every key in shares the key and the value if the key starts with "num"
+		[data['nextcloud_shares'].append(str(key) + ".value " + str(shares[key]))
+			for key in shares if key.startswith('num')]
+
+		# dbsize
+		dbsize = api_response['ocs']['data']['server']['database']['size']
 		data['nextcloud_dbsize'].append('multigraph nextcloud_dbsize')
 		data['nextcloud_dbsize'].append('db_size.value %s' % dbsize)
 
+		# app updates
 		# precaution for Nextcloud versions prior to version 14
 		version = api_response['ocs']['data']['nextcloud']['system']['version'].split(sep=".")
 
 		if int(version[0]) >= 14:
 			num_updates_available = api_response['ocs']['data']['nextcloud']['system']['apps']['num_updates_available']
+			data['nextcloud_available_updates'].append('multigraph nextcloud_available_updates')
 			data['nextcloud_available_updates'].append('num_updates_available.value %s' % num_updates_available)
 
 		return data
 
 	def run(self):
-		# init requests session with specific header and credentials
+		# init request session with specific header and credentials
 		with requests.Session() as s:
 			# read credentials from env
 			s.auth = (os.environ.get('username'), os.environ.get('password'))
@@ -147,29 +150,30 @@ class NextcloudMultiGraph:
 			# request the data
 			r = s.get(os.environ.get('url'))
 
-			# if status code is successful continue
-			if r.status_code == 200:
-				api_response = r.json()
-				result = self.get_data(api_response)
+		# if status code is successful continue
+		if r.status_code == 200:
+			result = self.get_data(r.json())
 
-				for key in result.keys():
-					print('\n'.join(result[key]))
+			# for key in results print every entry in dict
+			[print('\n'.join(result[key])) for key in result.keys()]
 
-			elif r.status_code == 996:
-				print('server error')
-			elif r.status_code == 997:
-				print('not authorized')
-			elif r.status_code == 998:
-				print('not found')
-			else:
-				print('unknown error')
+		elif r.status_code == 996:
+			print('server error')
+		elif r.status_code == 997:
+			print('not authorized')
+		elif r.status_code == 998:
+			print('not found')
+		else:
+			print('unknown error')
 
 	def main(self):
-		# check if first argument is config or autoconf if not fetch data
+		# check if any argument is given
 		if sys.argv.__len__() >= 2:
+			# check if first argument is config or autoconf if not fetch data
 			if sys.argv[1] == "config":
-				for key in self.config().keys():
-					print('\n'.join(self.config()[key]))
+				# for key in config().keys() print every entry in dict
+				[print('\n'.join(self.config()[key])) for key in self.config().keys()]
+				# MUNIN_CAP_DIRTYCONFIG capability
 				if os.environ.get('MUNIN_CAP_DIRTYCONFIG') == '1':
 					self.run()
 			elif sys.argv[1] == 'autoconf':
@@ -183,4 +187,3 @@ class NextcloudMultiGraph:
 
 if __name__ == "__main__":
 	NextcloudMultiGraph().main()
-	quit(0)

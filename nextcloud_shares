@@ -57,20 +57,19 @@ class NextcloudShares:
 		data ={
 			'nextcloud_shares': [],
 		}
+
+		# shares
 		shares = api_response['ocs']['data']['nextcloud']['shares']
+		data['nextcloud_shares'].append('multigraph nextcloud_shares')
 
-		# use regex to remove permission stats from api response
-		reg = re.compile("num.*")
-		share_keys = shares.keys()
-		sharelist = list(filter(reg.match, share_keys))
-
-		for key in sharelist:
-			data['nextcloud_shares'].append(str(key) + ".value " + str(shares[key]))
+		# append for every key in shares the key and the value if the key starts with "num"
+		[data['nextcloud_shares'].append(str(key) + ".value " + str(shares[key]))
+			for key in shares if key.startswith('num')]
 
 		return data
 
 	def run(self):
-		# init requests session with specific header and credentials
+		# init request session with specific header and credentials
 		with requests.Session() as s:
 			# read credentials from env
 			s.auth = (os.environ.get('username'), os.environ.get('password'))
@@ -81,29 +80,30 @@ class NextcloudShares:
 			# request the data
 			r = s.get(os.environ.get('url'))
 
-			# if status code is successful continue
-			if r.status_code == 200:
-				api_response = r.json()
-				result = self.get_data(api_response)
+		# if status code is successful continue
+		if r.status_code == 200:
+			result = self.get_data(r.json())
 
-				for key in result.keys():
-					print('\n'.join(result[key]))
+			# for key in results print every entry in dict
+			[print('\n'.join(result[key])) for key in result.keys()]
 
-			elif r.status_code == 996:
-				print('server error')
-			elif r.status_code == 997:
-				print('not authorized')
-			elif r.status_code == 998:
-				print('not found')
-			else:
-				print('unknown error')
+		elif r.status_code == 996:
+			print('server error')
+		elif r.status_code == 997:
+			print('not authorized')
+		elif r.status_code == 998:
+			print('not found')
+		else:
+			print('unknown error')
 
 	def main(self):
-		# check if first argument is config or autoconf if not fetch data
+		# check if any argument is given
 		if sys.argv.__len__() >= 2:
+			# check if first argument is config or autoconf if not fetch data
 			if sys.argv[1] == "config":
-				for key in self.config().keys():
-					print('\n'.join(self.config()[key]))
+				# for key in config().keys() print every entry in dict
+				[print('\n'.join(self.config()[key])) for key in self.config().keys()]
+				# MUNIN_CAP_DIRTYCONFIG capability
 				if os.environ.get('MUNIN_CAP_DIRTYCONFIG') == '1':
 					self.run()
 			elif sys.argv[1] == 'autoconf':
@@ -114,7 +114,5 @@ class NextcloudShares:
 		else:
 			self.run()
 
-
 if __name__ == "__main__":
 	NextcloudShares().main()
-	quit(0)
