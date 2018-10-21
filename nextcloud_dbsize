@@ -80,7 +80,6 @@ class NextcloudDB:
 			if sys.argv[1] == "config":
 				# for key in config().keys() print every entry in dict
 				[print('\n'.join(self.config()[key])) for key in self.config().keys()]
-				# MUNIN_CAP_DIRTYCONFIG capability
 				if os.environ.get('MUNIN_CAP_DIRTYCONFIG') == '1':
 					self.run()
 			elif sys.argv[1] == 'autoconf':
