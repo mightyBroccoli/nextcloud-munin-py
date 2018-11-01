@@ -36,7 +36,9 @@ class NextcloudUsers:
 				'last24hours.label last 24 hours',
 				'last24hours.info users connected in the last 24 hours',
 				'last24hours.min 0',
-                                'num_users.label number of users',
+				'num_users.label number of users',
+				'num_users.info total number of users',
+				'num_users.min 0'
                                 'num_users.info total number of users',
                                 'num_users.min 0'
 			]
