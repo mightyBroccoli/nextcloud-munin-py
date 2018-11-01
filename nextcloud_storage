@@ -50,7 +50,6 @@ class NextcloudStorage:
 
 		# storage
 		storage = api_response['ocs']['data']['nextcloud']['storage']
-		data['nextcloud_storage'].append('multigraph nextcloud_storage')
 
 		# append for every key in storage the key and the value if the key starts with "num"
 		[data['nextcloud_storage'].append(str(key) + ".value " + str(storage[key]))
