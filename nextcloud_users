@@ -57,7 +57,8 @@ class NextcloudUsers:
 		[data['nextcloud_users'].append(str(key) + ".value " + str(users[key]))
 			for key in users.keys()]
                 
-                #storage
+		#storage
+		data['nextcloud_users'].append('num_users.value %s' % num_users)
 		num_users = api_response['ocs']['data']['nextcloud']['storage']['num_users']
 		data['nextcloud_users'].append('num_users.value %s' % num_users)
 
