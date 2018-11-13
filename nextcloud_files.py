@@ -27,8 +27,8 @@ class NextcloudStorage:
 				'graph_info graph showing the number of files',
 				'graph_category nextcloud',
 				'num_files.label number of files',
-                                'num_files.info current number of files in the repository',
-                                'num_files.min 0'
+				'num_files.info current number of files in the repository',
+				'num_files.min 0'
 			]
 		}
 
