@@ -102,6 +102,6 @@ class NextcloudStorage:
 		else:
 			self.run()
 
+
 if __name__ == "__main__":
 	NextcloudStorage().main()
-	

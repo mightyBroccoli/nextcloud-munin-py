@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Plugin to monitor the amount storage to and from the specified nextcloud instance
+# Plugin to monitor the total number of files on the specified nextcloud instance
 #
 # Parameters understood:
 #     config   (required)
@@ -39,12 +39,9 @@ class NextcloudStorage:
 			'nextcloud_storage': [],
 		}
 
-		# storage
-		storage = api_response['ocs']['data']['nextcloud']['storage']
-
-		# append for every key in storage the key and the value if the key starts with "num"
-		[data['nextcloud_storage'].append(str(key) + ".value " + str(storage[key]))
-			for key in storage if key.startswith('num_files')]
+		# append the total number of files present
+		num_files = api_response['ocs']['data']['nextcloud']['storage']['num_files']
+		data['nextcloud_storage'].append('num_files.value %s' % num_files)
 
 		return data
 
@@ -93,6 +90,6 @@ class NextcloudStorage:
 		else:
 			self.run()
 
+
 if __name__ == "__main__":
 	NextcloudStorage().main()
-	
