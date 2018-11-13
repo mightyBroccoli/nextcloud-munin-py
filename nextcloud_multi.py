@@ -95,7 +95,8 @@ class NextcloudMultiGraph:
 				'graph_category nextcloud',
 				'num_updates_available.label available app updates',
 				'num_updates_available.info number of available app updates',
-				'num_updates_available.min 0'
+				'num_updates_available.min 0',
+				'num_updates_available.warning 1'
 			]
 		}
 
