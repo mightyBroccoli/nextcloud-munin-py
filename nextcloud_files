@@ -35,7 +35,7 @@ class NextcloudStorage:
 		return config
 
 	def get_data(self, api_response):
-		data ={
+		data = {
 			'nextcloud_storage': [],
 		}
 
