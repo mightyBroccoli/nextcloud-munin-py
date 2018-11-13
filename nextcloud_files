@@ -95,3 +95,4 @@ class NextcloudStorage:
 
 if __name__ == "__main__":
 	NextcloudStorage().main()
+	
