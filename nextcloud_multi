@@ -40,7 +40,10 @@ class NextcloudMultiGraph:
 				'last1hour.min 0',
 				'last24hours.label last 24 hours',
 				'last24hours.info users connected in the last 24 hours',
-				'last24hours.min 0'
+				'last24hours.min 0',
+				'num_users.label number of users',
+				'num_users.info total number of users',
+				'num_users.min 0'
 			],
 			'shares': [
 				'multigraph nextcloud_shares',
@@ -107,12 +110,16 @@ class NextcloudMultiGraph:
 		}
 
 		# users
-		users  = api_response['ocs']['data']['activeUsers']
+		users = api_response['ocs']['data']['activeUsers']
+		num_users = api_response['ocs']['data']['nextcloud']['storage']['num_users']
 		data['nextcloud_users'].append('multigraph nextcloud_users')
 
 		# append for every key in users the key and the value to the results
 		[data['nextcloud_users'].append(str(key) + ".value " + str(users[key]))
 			for key in users.keys()]
+
+		# append total number of users
+		data['nextcloud_users'].append('num_users.value %s' % num_users)
 
 		# shares
 		shares = api_response['ocs']['data']['nextcloud']['shares']
