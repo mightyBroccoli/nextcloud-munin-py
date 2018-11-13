@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Plugin to monitor the number of available nextcloud app updates
+# Plugin to monitor the nextcloud database size
 #
 # Parameters understood:
 #     config   (required)
@@ -17,34 +17,31 @@ import sys
 import os
 
 
-class NextcloudApps:
+class NextcloudDB:
 	def config(self):
 		config = {
-			'apps': [
-				'graph_title Nextcloud available App updates',
-				'graph_args --base 1000 -l 0',
-				'graph_vlabel updates available',
-				'graph_info graph showing the number of available app updates',
+			'dbsize': [
+				'graph_title Nextcloud Database Size',
+				'graph_args --base 1024 -l 0',
+				'graph_vlabel size in byte',
+				'graph_info graph showing the database size in byte',
 				'graph_category nextcloud',
-				'num_updates_available.label available app updates',
-				'num_updates_available.info number of available app updates',
-				'num_updates_available.min 0'
+				'db_size.label database size in byte',
+				'db_size.info users connected in the last 5 minutes',
+				'db_size.draw AREA',
+				'db_size.min 0'
 			]
 		}
 
 		return config
 
 	def get_data(self, api_response):
-		data ={
-			'nextcloud_available_updates': []
+		data = {
+			'nextcloud_dbsize': [],
 		}
 
-		# precaution for Nextcloud versions prior to version 14
-		version = api_response['ocs']['data']['nextcloud']['system']['version'].split(sep=".")
-
-		if int(version[0]) >= 14:
-			num_updates_available = api_response['ocs']['data']['nextcloud']['system']['apps']['num_updates_available']
-			data['nextcloud_available_updates'].append('num_updates_available.value %s' % num_updates_available)
+		dbsize = api_response['ocs']['data']['server']['database']['size']
+		data['nextcloud_dbsize'].append('db_size.value %s' % dbsize)
 
 		return data
 
@@ -95,4 +92,4 @@ class NextcloudApps:
 
 
 if __name__ == "__main__":
-	NextcloudApps().main()
+	NextcloudDB().main()

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Plugin to monitor the amount shares to and from the specified nextcloud instance
+# Plugin to monitor the number of available nextcloud app updates
 #
 # Parameters understood:
 #     config   (required)
@@ -12,59 +12,39 @@
 #
 #  #%# family=manual
 #  #%# capabilities=autoconf
-import re
 import requests
 import sys
 import os
 
 
-class NextcloudShares:
+class NextcloudApps:
 	def config(self):
 		config = {
-			'shares': [
-				'graph_title Nextcloud Shares',
+			'apps': [
+				'graph_title Nextcloud available App updates',
 				'graph_args --base 1000 -l 0',
-				'graph_vlabel number of shares',
-				'graph_info graph showing the number of shares',
+				'graph_vlabel updates available',
+				'graph_info graph showing the number of available app updates',
 				'graph_category nextcloud',
-				'num_fed_shares_received.label federated shares recieved',
-				'num_fed_shares_received.info current total of federated shares recieved',
-				'num_fed_shares_received.min 0',
-				'num_fed_shares_sent.label federated shares sent',
-				'num_fed_shares_sent.info current total of federated shares sent',
-				'num_fed_shares_sent.min 0',
-				'num_shares.label total number of shares',
-				'num_shares.info current over all total of shares',
-				'num_shares.min 0',
-				'num_shares_groups.label group shares',
-				'num_shares_groups.info current total of group shares',
-				'num_shares_groups.min 0',
-				'num_shares_link.label link shares',
-				'num_shares_link.info current total of shares through a link',
-				'num_shares_link.min 0',
-				'num_shares_link_no_password.label link shares without a password',
-				'num_shares_link_no_password.info current total of shares through a link without a password protection',
-				'num_shares_link_no_password.min 0',
-				'num_shares_user.label user shares',
-				'num_shares_user.info current total of user shares',
-				'num_shares_user.min 0'
+				'num_updates_available.label available app updates',
+				'num_updates_available.info number of available app updates',
+				'num_updates_available.min 0'
 			]
 		}
 
 		return config
 
 	def get_data(self, api_response):
-		data ={
-			'nextcloud_shares': [],
+		data = {
+			'nextcloud_available_updates': []
 		}
 
-		# shares
-		shares = api_response['ocs']['data']['nextcloud']['shares']
-		data['nextcloud_shares'].append('multigraph nextcloud_shares')
+		# precaution for Nextcloud versions prior to version 14
+		version = api_response['ocs']['data']['nextcloud']['system']['version'].split(sep=".")
 
-		# append for every key in shares the key and the value if the key starts with "num"
-		[data['nextcloud_shares'].append(str(key) + ".value " + str(shares[key]))
-			for key in shares if key.startswith('num')]
+		if int(version[0]) >= 14:
+			num_updates_available = api_response['ocs']['data']['nextcloud']['system']['apps']['num_updates_available']
+			data['nextcloud_available_updates'].append('num_updates_available.value %s' % num_updates_available)
 
 		return data
 
@@ -113,5 +93,6 @@ class NextcloudShares:
 		else:
 			self.run()
 
+
 if __name__ == "__main__":
-	NextcloudShares().main()
+	NextcloudApps().main()

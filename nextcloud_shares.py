@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Plugin to monitor the nextcloud database size
+# Plugin to monitor the amount shares to and from the specified nextcloud instance
 #
 # Parameters understood:
 #     config   (required)
@@ -17,31 +17,53 @@ import sys
 import os
 
 
-class NextcloudDB:
+class NextcloudShares:
 	def config(self):
 		config = {
-			'dbsize': [
-				'graph_title Nextcloud Database Size',
-				'graph_args --base 1024 -l 0',
-				'graph_vlabel size in byte',
-				'graph_info graph showing the database size in byte',
+			'shares': [
+				'graph_title Nextcloud Shares',
+				'graph_args --base 1000 -l 0',
+				'graph_vlabel number of shares',
+				'graph_info graph showing the number of shares',
 				'graph_category nextcloud',
-				'db_size.label database size in byte',
-				'db_size.info users connected in the last 5 minutes',
-				'db_size.draw AREA',
-				'db_size.min 0'
+				'num_fed_shares_received.label federated shares recieved',
+				'num_fed_shares_received.info current total of federated shares recieved',
+				'num_fed_shares_received.min 0',
+				'num_fed_shares_sent.label federated shares sent',
+				'num_fed_shares_sent.info current total of federated shares sent',
+				'num_fed_shares_sent.min 0',
+				'num_shares.label total number of shares',
+				'num_shares.info current over all total of shares',
+				'num_shares.min 0',
+				'num_shares_groups.label group shares',
+				'num_shares_groups.info current total of group shares',
+				'num_shares_groups.min 0',
+				'num_shares_link.label link shares',
+				'num_shares_link.info current total of shares through a link',
+				'num_shares_link.min 0',
+				'num_shares_link_no_password.label link shares without a password',
+				'num_shares_link_no_password.info current total of shares through a link without a password protection',
+				'num_shares_link_no_password.min 0',
+				'num_shares_user.label user shares',
+				'num_shares_user.info current total of user shares',
+				'num_shares_user.min 0'
 			]
 		}
 
 		return config
 
 	def get_data(self, api_response):
-		data ={
-			'nextcloud_dbsize': [],
+		data = {
+			'nextcloud_shares': [],
 		}
 
-		dbsize = api_response['ocs']['data']['server']['database']['size']
-		data['nextcloud_dbsize'].append('db_size.value %s' % dbsize)
+		# shares
+		shares = api_response['ocs']['data']['nextcloud']['shares']
+		data['nextcloud_shares'].append('multigraph nextcloud_shares')
+
+		# append for every key in shares the key and the value if the key starts with "num"
+		[data['nextcloud_shares'].append(str(key) + ".value " + str(shares[key]))
+			for key in shares if key.startswith('num')]
 
 		return data
 
@@ -92,4 +114,4 @@ class NextcloudDB:
 
 
 if __name__ == "__main__":
-	NextcloudDB().main()
+	NextcloudShares().main()
