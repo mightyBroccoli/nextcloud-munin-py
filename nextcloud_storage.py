@@ -21,7 +21,7 @@ class NextcloudStorage:
 	def config(self):
 		config = {
 			'storage': [
-				'graph_title Nextcloud Storage',
+				'graph_title Nextcloud Storages',
 				'graph_args --base 1000 -l 0',
 				'graph_vlabel number of storage',
 				'graph_info graph showing the number of storages',
@@ -45,14 +45,14 @@ class NextcloudStorage:
 
 	def get_data(self, api_response):
 		data = {
-			'nextcloud_storage': [],
+			'nextcloud_storages': [],
 		}
 
 		# storage
 		storage = api_response['ocs']['data']['nextcloud']['storage']
 
 		# append for every key in storage the key and the value if the key starts with "num"
-		[data['nextcloud_storage'].append(str(key) + ".value " + str(storage[key]))
+		[data['nextcloud_storages'].append(str(key) + ".value " + str(storage[key]))
 			for key in storage if key.startswith('num_storages')]
 
 		return data

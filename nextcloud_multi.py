@@ -97,6 +97,37 @@ class NextcloudMultiGraph:
 				'num_updates_available.info number of available app updates',
 				'num_updates_available.min 0',
 				'num_updates_available.warning 1'
+			],
+			'storages': [
+				'multigraph nextcloud_storages',
+				'graph_title Nextcloud Storages',
+				'graph_args --base 1000 -l 0',
+				'graph_vlabel number',
+				'graph_info graph showing the number of storages',
+				'graph_category nextcloud',
+				'num_storages.label total number of storages',
+				'num_storages.info current over all total of storages',
+				'num_storages.min 0',
+				'num_storages_local.label number of local storages',
+				'num_storages_local.info current over all total of storage',
+				'num_storages_local.min 0',
+				'num_storages_home.label number of home storages',
+				'num_storages_home.info current over all total of storage',
+				'num_storages_home.min 0',
+				'num_storages_other.label number of other storages',
+				'num_storages_other.info current over all total of storage',
+				'num_storages_other.min 0'
+			],
+			"filecount": [
+				'multigraph nextcloud_filecount',
+				'graph_title Nextcloud Files',
+				'graph_args --base 1000 -l 0',
+				'graph_vlabel number of files',
+				'graph_info graph showing the number of files',
+				'graph_category nextcloud',
+				'num_files.label number of files',
+				'num_files.info current number of files in the repository',
+				'num_files.min 0'
 			]
 		}
 
@@ -107,7 +138,9 @@ class NextcloudMultiGraph:
 			'nextcloud_users': [],
 			'nextcloud_shares': [],
 			'nextcloud_dbsize': [],
-			'nextcloud_available_updates': []
+			'nextcloud_available_updates': [],
+			'nextcloud_storages': [],
+			'nextcloud_filecount': []
 		}
 
 		# users
@@ -143,6 +176,19 @@ class NextcloudMultiGraph:
 			num_updates_available = api_response['ocs']['data']['nextcloud']['system']['apps']['num_updates_available']
 			data['nextcloud_available_updates'].append('multigraph nextcloud_available_updates')
 			data['nextcloud_available_updates'].append('num_updates_available.value %s' % num_updates_available)
+
+		# storage
+		storage = api_response['ocs']['data']['nextcloud']['storage']
+		data['nextcloud_storages'].append('multigraph nextcloud_storages')
+
+		# append for every key in storage the key and the value if the key starts with "num"
+		[data['nextcloud_storages'].append(str(key) + ".value " + str(storage[key]))
+			for key in storage if key.startswith('num_storages')]
+
+		# filecount
+		num_files = api_response['ocs']['data']['nextcloud']['storage']['num_files']
+		data['nextcloud_filecount'].append('multigraph nextcloud_filecount')
+		data['nextcloud_filecount'].append('num_files.value %s' % num_files)
 
 		return data
 

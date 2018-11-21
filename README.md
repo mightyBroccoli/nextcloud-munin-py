@@ -1,10 +1,10 @@
 # Nextcloud Munin Plugin
-Within this repository there are some basic Munin Plugins gathering information from the NextCloud external API. I choose to also include a multigraph plugin `nextcloud_multi` which does everything the other plugins do but in one single request.
+Within this repository there are some basic Munin Plugins gathering information from the NextCloud external API. I choose to also include a multigraph plugin `nextcloud_multi.py` which does everything the other plugins dynamically.
 
-There are drawbacks to using a multigraph plugin which can be read up here : [Munin-Monitoring.org](http://guide.munin-monitoring.org/en/latest/plugin/multigraphing.html)
+There are requirements for using a multigraph plugin which can be read up here : [Munin-Monitoring.org/multigraphing](http://guide.munin-monitoring.org/en/latest/plugin/multigraphing.html)
 
 ## install
-To use these plugins properly some configuration parameters need to be added to the plugin-config `/etc/munin/plugin-config.d/munin-node`. 
+To use these plugins properly some configuration parameters need to be added to the plugin-config `/etc/munin/plugin-config.d/custom-config`. 
 ```
 [nextcloud_*]
 url = https://URL.TO.YOUR.NEXTCLOUD.tld/ocs/v2.php/apps/serverinfo/api/v1/info
@@ -16,25 +16,45 @@ To install these plugins, you just have to symlink those plugins you would like 
 After this has been done the munin-node needs to be restarted to facilitate the new plugins.
 `systemctl restart munin-node`
 
+It is possible to run the plugins in a virtual environment, for that the environment needs to be initialized and the required packages to be installed.
+```
+virtualenv -p python3 /path/to/your/venv
+
+pip install -r requirements.txt
+```
+
 ### everything working?
 To check if everything is working as expected check if the plugins are listed and actually gather data.
 ```
 telnet localhost 4949 # localhost or IP the munin-node
 list
-fetch nextcloud_shares
-fetch nextcloud_users
-fetch nextcloud_db
-fetch nextcloud_apps
+fetch nextcloud_shares.py
+num_fed_shares_received.value 1
+num_shares_link_no_password.value 5
+num_shares_user.value 13
+num_shares.value 21
+num_shares_link.value 5
+num_shares_groups.value 0
+num_fed_shares_sent.value 0
 ```
 If everything works as it should, list will return the symlinked plugins within the list of active plugins. 
 
 ##### multipgrah plugin
-To check if the multigraph plugin is working correctly it is necessary to first instruct the capability multigraph before the `list` instruction.
+To check if the multigraph plugin is working correctly, it is necessary to first instruct the multigraph capability, before the `list` instruction will list the plugin.
 ```
 telnet localhost 4949 # localhost or IP the munin-node
 cap multigraph
 list
-fetch nextcloud_multi
+fetch nextcloud_multi.py
+multigraph nextcloud_shares
+num_fed_shares_received.value 1
+num_shares_link_no_password.value 5
+num_shares_user.value 13
+num_shares.value 21
+num_shares_link.value 5
+num_shares_groups.value 0
+num_fed_shares_sent.value 0
+...
 ```
 
 The `fetch` commands will run the script and return the gathered values. As long as none of them are NaN everything works as expected.

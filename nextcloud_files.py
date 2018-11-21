@@ -20,7 +20,7 @@ import os
 class NextcloudStorage:
 	def config(self):
 		config = {
-			'storage': [
+			'filecount': [
 				'graph_title Nextcloud Files',
 				'graph_args --base 1000 -l 0',
 				'graph_vlabel number of files',
@@ -36,12 +36,12 @@ class NextcloudStorage:
 
 	def get_data(self, api_response):
 		data = {
-			'nextcloud_storage': [],
+			'nextcloud_filecount': [],
 		}
 
 		# append the total number of files present
 		num_files = api_response['ocs']['data']['nextcloud']['storage']['num_files']
-		data['nextcloud_storage'].append('num_files.value %s' % num_files)
+		data['nextcloud_filecount'].append('num_files.value %s' % num_files)
 
 		return data
 
