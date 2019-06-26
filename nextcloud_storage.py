@@ -18,44 +18,37 @@ import os
 
 
 class NextcloudStorage:
-	def config(self):
-		config = {
-			'storage': [
-				'graph_title Nextcloud Storages',
-				'graph_args --base 1000 -l 0',
-				'graph_vlabel number of storage',
-				'graph_info graph showing the number of storages',
-				'graph_category nextcloud',
-				'num_storages.label total number of storages',
-				'num_storages.info current over all total of storages',
-				'num_storages.min 0',
-				'num_storages_local.label number of local storages',
-				'num_storages_local.info current over all total of storage',
-				'num_storages_local.min 0',
-				'num_storages_home.label number of home storages',
-				'num_storages_home.info current over all total of storage',
-				'num_storages_home.min 0',
-				'num_storages_other.label number of other storages',
-				'num_storages_other.info current over all total of storage',
-				'num_storages_other.min 0'
-			]
-		}
+	def __init__(self):
+		self.config = [
+			# storages
+			'graph_title Nextcloud Storages',
+			'graph_args --base 1000 -l 0',
+			'graph_printf %.0lf',
+			'graph_vlabel number',
+			'graph_info graph showing the number of storages',
+			'graph_category nextcloud',
+			'num_storages.label total number of storages',
+			'num_storages.info current over all total of storages',
+			'num_storages.min 0',
+			'num_storages_local.label number of local storages',
+			'num_storages_local.info current over all total of storage',
+			'num_storages_local.min 0',
+			'num_storages_home.label number of home storages',
+			'num_storages_home.info current over all total of storage',
+			'num_storages_home.min 0',
+			'num_storages_other.label number of other storages',
+			'num_storages_other.info current over all total of storage',
+			'num_storages_other.min 0'
+		]
+		self.result = list()
 
-		return config
-
-	def get_data(self, api_response):
-		data = {
-			'nextcloud_storages': [],
-		}
-
-		# storage
+	def parse_data(self, api_response):
 		storage = api_response['ocs']['data']['nextcloud']['storage']
 
 		# append for every key in storage the key and the value if the key starts with "num"
-		[data['nextcloud_storages'].append(str(key) + ".value " + str(storage[key]))
-			for key in storage if key.startswith('num_storages')]
-
-		return data
+		for key, value in storage.items():
+			if key.startswith('num_storages'):
+				self.result.append('{k}.value {v}'.format(k=key, v=value))
 
 	def run(self):
 		# init request session with specific header and credentials
@@ -71,10 +64,11 @@ class NextcloudStorage:
 
 		# if status code is successful continue
 		if r.status_code == 200:
-			result = self.get_data(r.json())
+			self.parse_data(r.json())
 
-			# for key in results print every entry in dict
-			[print('\n'.join(result[key])) for key in result.keys()]
+			# output results to stdout
+			for el in self.result:
+				print(el, file=sys.stdout)
 
 		elif r.status_code == 996:
 			print('server error')
@@ -90,10 +84,14 @@ class NextcloudStorage:
 		if sys.argv.__len__() >= 2:
 			# check if first argument is config or autoconf if not fetch data
 			if sys.argv[1] == "config":
-				# for key in config().keys() print every entry in dict
-				[print('\n'.join(self.config()[key])) for key in self.config().keys()]
+				# output config list to stdout
+				for el in self.config:
+					print(el, file=sys.stdout)
+
+				# if DIRTYCONFIG true also return the corresponding values
 				if os.environ.get('MUNIN_CAP_DIRTYCONFIG') == '1':
 					self.run()
+
 			elif sys.argv[1] == 'autoconf':
 				if None in [os.environ.get('username'), os.environ.get('password')]:
 					print('env variables are missing')

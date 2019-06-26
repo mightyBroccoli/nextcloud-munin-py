@@ -18,48 +18,37 @@ import os
 
 
 class NextcloudUsers:
-	def config(self):
-		config = {
-			'users': [
-				'graph_title Nextcloud User Activity',
-				'graph_args --base 1000 -l 0',
-				'graph_printf %.0lf',
-				'graph_vlabel connected users',
-				'graph_info graph showing the number of connected user',
-				'graph_category nextcloud',
-				'last5minutes.label last 5 minutes',
-				'last5minutes.info users connected in the last 5 minutes',
-				'last5minutes.min 0',
-				'last1hour.label last hour',
-				'last1hour.info users connected in the last hour',
-				'last1hour.min 0',
-				'last24hours.label last 24 hours',
-				'last24hours.info users connected in the last 24 hours',
-				'last24hours.min 0',
-				'num_users.label number of users',
-				'num_users.info total number of users',
-				'num_users.min 0'
-			]
-		}
+	def __init__(self):
+		self.config = [
+			# users
+			'graph_title Nextcloud User Activity',
+			'graph_args --base 1000 -l 0',
+			'graph_printf %.0lf',
+			'graph_vlabel connected users',
+			'graph_info graph showing the number of connected user',
+			'graph_category nextcloud',
+			'last5minutes.label last 5 minutes',
+			'last5minutes.info users connected in the last 5 minutes',
+			'last5minutes.min 0',
+			'last1hour.label last hour',
+			'last1hour.info users connected in the last hour',
+			'last1hour.min 0',
+			'last24hours.label last 24 hours',
+			'last24hours.info users connected in the last 24 hours',
+			'last24hours.min 0',
+			'num_users.label number of users',
+			'num_users.info total number of users',
+			'num_users.min 0'
+		]
+		self.result = list()
 
-		return config
-
-	def get_data(self, api_response):
-		data = {
-			'nextcloud_users': [],
-		}
-		# users
+	def parse_data(self, api_response):
 		users = api_response['ocs']['data']['activeUsers']
 		num_users = api_response['ocs']['data']['nextcloud']['storage']['num_users']
 
 		# append for every key in users the key and the value to the results
-		[data['nextcloud_users'].append(str(key) + ".value " + str(users[key]))
-			for key in users.keys()]
-
-		# append total number of users
-		data['nextcloud_users'].append('num_users.value %s' % num_users)
-
-		return data
+		for key, value in users.items():
+			self.result.append('{k}.value {v}'.format(k=key, v=value))
 
 	def run(self):
 		# init request session with specific header and credentials
@@ -75,10 +64,11 @@ class NextcloudUsers:
 
 		# if status code is successful continue
 		if r.status_code == 200:
-			result = self.get_data(r.json())
+			self.parse_data(r.json())
 
-			# for key in results print every entry in dict
-			[print('\n'.join(result[key])) for key in result.keys()]
+			# output results to stdout
+			for el in self.result:
+				print(el, file=sys.stdout)
 
 		elif r.status_code == 996:
 			print('server error')
@@ -94,10 +84,14 @@ class NextcloudUsers:
 		if sys.argv.__len__() >= 2:
 			# check if first argument is config or autoconf if not fetch data
 			if sys.argv[1] == "config":
-				# for key in config().keys() print every entry in dict
-				[print('\n'.join(self.config()[key])) for key in self.config().keys()]
+				# output config list to stdout
+				for el in self.config:
+					print(el, file=sys.stdout)
+
+				# if DIRTYCONFIG true also return the corresponding values
 				if os.environ.get('MUNIN_CAP_DIRTYCONFIG') == '1':
 					self.run()
+
 			elif sys.argv[1] == 'autoconf':
 				if None in [os.environ.get('username'), os.environ.get('password')]:
 					print('env variables are missing')

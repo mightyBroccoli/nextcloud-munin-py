@@ -18,36 +18,29 @@ import os
 
 
 class NextcloudApps:
-	def config(self):
-		config = {
-			'apps': [
-				'graph_title Nextcloud available App updates',
-				'graph_args --base 1000 -l 0',
-				'graph_vlabel updates available',
-				'graph_info graph showing the number of available app updates',
-				'graph_category nextcloud',
-				'num_updates_available.label available app updates',
-				'num_updates_available.info number of available app updates',
-				'num_updates_available.min 0',
-				'num_updates_available.warning 1'
-			]
-		}
+	def __init__(self):
+		self.config = [
+			# available_updates
+			'graph_title Nextcloud available App updates',
+			'graph_args --base 1000 -l 0',
+			'graph_printf %.0lf',
+			'graph_vlabel updates available',
+			'graph_info graph showing the number of available app updates',
+			'graph_category nextcloud',
+			'num_updates_available.label available app updates',
+			'num_updates_available.info number of available app updates',
+			'num_updates_available.min 0',
+			'num_updates_available.warning 1'
+		]
+		self.result = list()
 
-		return config
-
-	def get_data(self, api_response):
-		data = {
-			'nextcloud_available_updates': []
-		}
-
+	def parse_data(self, api_response):
 		# precaution for Nextcloud versions prior to version 14
 		version = api_response['ocs']['data']['nextcloud']['system']['version'].split(sep=".")
 
 		if int(version[0]) >= 14:
 			num_updates_available = api_response['ocs']['data']['nextcloud']['system']['apps']['num_updates_available']
-			data['nextcloud_available_updates'].append('num_updates_available.value %s' % num_updates_available)
-
-		return data
+			self.result.append('num_updates_available.value %s' % num_updates_available)
 
 	def run(self):
 		# init request session with specific header and credentials
@@ -63,10 +56,11 @@ class NextcloudApps:
 
 		# if status code is successful continue
 		if r.status_code == 200:
-			result = self.get_data(r.json())
+			self.parse_data(r.json())
 
-			# for key in results print every entry in dict
-			[print('\n'.join(result[key])) for key in result.keys()]
+			# output results to stdout
+			for el in self.result:
+				print(el, file=sys.stdout)
 
 		elif r.status_code == 996:
 			print('server error')
@@ -82,10 +76,14 @@ class NextcloudApps:
 		if sys.argv.__len__() >= 2:
 			# check if first argument is config or autoconf if not fetch data
 			if sys.argv[1] == "config":
-				# for key in config().keys() print every entry in dict
-				[print('\n'.join(self.config()[key])) for key in self.config().keys()]
+				# output config list to stdout
+				for el in self.config:
+					print(el, file=sys.stdout)
+
+				# if DIRTYCONFIG true also return the corresponding values
 				if os.environ.get('MUNIN_CAP_DIRTYCONFIG') == '1':
 					self.run()
+
 			elif sys.argv[1] == 'autoconf':
 				if None in [os.environ.get('username'), os.environ.get('password')]:
 					print('env variables are missing')

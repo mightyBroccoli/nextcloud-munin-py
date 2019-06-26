@@ -18,32 +18,24 @@ import os
 
 
 class NextcloudDB:
-	def config(self):
-		config = {
-			'dbsize': [
-				'graph_title Nextcloud Database Size',
-				'graph_args --base 1024 -l 0',
-				'graph_vlabel size in byte',
-				'graph_info graph showing the database size in byte',
-				'graph_category nextcloud',
-				'db_size.label database size in byte',
-				'db_size.info users connected in the last 5 minutes',
-				'db_size.draw AREA',
-				'db_size.min 0'
-			]
-		}
+	def __init__(self):
+		self.config = [
+			# dbsize
+			'graph_title Nextcloud Database Size',
+			'graph_args --base 1024 -l 0',
+			'graph_vlabel size in byte',
+			'graph_info graph showing the database size in byte',
+			'graph_category nextcloud',
+			'db_size.label database size in byte',
+			'db_size.info users connected in the last 5 minutes',
+			'db_size.draw AREA',
+			'db_size.min 0'
+		]
+		self.result = list()
 
-		return config
-
-	def get_data(self, api_response):
-		data = {
-			'nextcloud_dbsize': [],
-		}
-
+	def parse_data(self, api_response):
 		dbsize = api_response['ocs']['data']['server']['database']['size']
-		data['nextcloud_dbsize'].append('db_size.value %s' % dbsize)
-
-		return data
+		self.result.append('db_size.value %s' % dbsize)
 
 	def run(self):
 		# init request session with specific header and credentials
@@ -59,10 +51,11 @@ class NextcloudDB:
 
 		# if status code is successful continue
 		if r.status_code == 200:
-			result = self.get_data(r.json())
+			self.parse_data(r.json())
 
-			# for key in results print every entry in dict
-			[print('\n'.join(result[key])) for key in result.keys()]
+			# output results to stdout
+			for el in self.result:
+				print(el, file=sys.stdout)
 
 		elif r.status_code == 996:
 			print('server error')
@@ -78,10 +71,14 @@ class NextcloudDB:
 		if sys.argv.__len__() >= 2:
 			# check if first argument is config or autoconf if not fetch data
 			if sys.argv[1] == "config":
-				# for key in config().keys() print every entry in dict
-				[print('\n'.join(self.config()[key])) for key in self.config().keys()]
+				# output config list to stdout
+				for el in self.config:
+					print(el, file=sys.stdout)
+
+				# if DIRTYCONFIG true also return the corresponding values
 				if os.environ.get('MUNIN_CAP_DIRTYCONFIG') == '1':
 					self.run()
+
 			elif sys.argv[1] == 'autoconf':
 				if None in [os.environ.get('username'), os.environ.get('password')]:
 					print('env variables are missing')
