@@ -1,4 +1,4 @@
-# Nextcloud Munin Plugin
+# Nextcloud Munin Plugin [![CodeFactor](https://www.codefactor.io/repository/github/mightybroccoli/nextcloud-munin-py/badge/master)](https://www.codefactor.io/repository/github/mightybroccoli/nextcloud-munin-py/overview/master)
 Within this repository there are some basic Munin Plugins gathering information from the NextCloud external API. I choose to also include a multigraph plugin `nextcloud_multi.py` which does everything the other plugins dynamically.
 
 There are requirements for using a multigraph plugin which can be read up here : [Munin-Monitoring.org/multigraphing](http://guide.munin-monitoring.org/en/latest/plugin/multigraphing.html)
