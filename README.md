@@ -1,27 +1,41 @@
 # Nextcloud Munin Plugin [![CodeFactor](https://www.codefactor.io/repository/github/mightybroccoli/nextcloud-munin-py/badge/master)](https://www.codefactor.io/repository/github/mightybroccoli/nextcloud-munin-py/overview/master)
-Within this repository there are some basic Munin Plugins gathering information from the NextCloud external API. I choose to also include a multigraph plugin `nextcloud_multi.py` which does everything the other plugins dynamically.
+This repository contains some basic Munin Plugins for gathering information from the NextCloud external API. To further simplify the monitory process I choose to also include a multigraph plugin `nextcloud_multi.py` which does everything the other plugins do in a single plugin.
 
 There are requirements for using a multigraph plugin which can be read up here : [Munin-Monitoring.org/multigraphing](http://guide.munin-monitoring.org/en/latest/plugin/multigraphing.html)
 
 ## install
-To use these plugins properly some configuration parameters need to be added to the plugin-config `/etc/munin/plugin-config.d/custom-config`. 
+### requirements
+The Python environment need to have access to the [requests](https://github.com/psf/requests) module. It is possible to run the plugins in a virtual environment, with the virtual environment tool of your choice.
+The `requirements.txt` file contains all necessary libraries pip will install.
+```
+virtualenv -p python3 /path/to/your/venv
+pip install -r requirements.txt
+```
+
+#### Tip
+Unfortunately you need to invoke the plugin with the virtual environment runtime. Thus you have to change the shebang from '#!/usr/bin/env python3' to the python3 path, or you could simply add a wrapper script.
+That way you only modify untracked files which helps with git updates.
+```bash
+#!/bin/bash
+# path to my virtual env python runtime                            # the unchanged nextcloud_multi.py file
+/usr/share/munin/custom-plugins/nextcloud-munin-py/venv/bin/python /usr/share/munin/custom-plugins/nextcloud-munin-py/nextcloud_multi.py $@
+```
+
+### configuration
+To use these plugins properly some configuration parameters need to be added to the plugin-config `/etc/munin/plugin-config.d/z-custom-config`. 
 ```
 [nextcloud_*]
-url = https://URL.TO.YOUR.NEXTCLOUD.tld/ocs/v2.php/apps/serverinfo/api/v1/info
-username = username
-password = password or logintoken
+env.username username
+env.password password or logintoken
+env.url https://URL.TO.YOUR.NEXTCLOUD.tld/ocs/v2.php/apps/serverinfo/api/v1/info
 ```
-To install these plugins, you just have to symlink those plugins you would like to activate to the munin plugin directory eg. `/etc/munin/plugins/`. Or if you want to use the multigraph plugin only symlink that one the the munin plugin directory.
+
+### activating the plugin
+Finally you need to symlink the plugins you would like to activate into the munin plugin directory eg. `/etc/munin/plugins/`. 
+Or if you want to use the multigraph plugin only symlink that one the the munin plugin directory.
 
 After this has been done the munin-node needs to be restarted to facilitate the new plugins.
 `systemctl restart munin-node`
-
-It is possible to run the plugins in a virtual environment, for that the environment needs to be initialized and the required packages to be installed.
-```
-virtualenv -p python3 /path/to/your/venv
-
-pip install -r requirements.txt
-```
 
 ### everything working?
 To check if everything is working as expected check if the plugins are listed and actually gather data.
