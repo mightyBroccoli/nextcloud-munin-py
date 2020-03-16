@@ -30,9 +30,34 @@ env.password password or logintoken
 env.url https://URL.TO.YOUR.NEXTCLOUD.tld/ocs/v2.php/apps/serverinfo/api/v1/info
 ```
 
+If you run multiple instances of nextcloud on one same system (with NEXTCLOUD_CONFIG_DIR), you should and can name the instances.
+
+```
+[nextcloud_multi.py_firstinstance.nextcloud.tld]
+env.username username
+env.password password or logintoken
+env.url https://FIRSTINSTANCE.NEXTCLOUD.tld/ocs/v2.php/apps/serverinfo/api/v1/info
+
+[nextcloud_multi.py_secondinstance.nextcloud.tld]
+env.username username
+env.password password or logintoken
+env.url https://SECONDINSTANCE.NEXTCLOUD.tld/ocs/v2.php/apps/serverinfo/api/v1/info
+```
+
 ### activating the plugin
 Finally you need to symlink the plugins you would like to activate into the munin plugin directory eg. `/etc/munin/plugins/`. 
 Or if you want to use the multigraph plugin only symlink that one the the munin plugin directory.
+
+Example for a single instance:
+
+`ln -s /path/to/nextcloud/munin/plugins/nextcloud_multi.py /etc/munin/plugins/nextcloud_multi.py`
+
+Example for a multitple instances:
+
+`ln -s /path/to/nextcloud/munin/plugins/nextcloud_multi.py /etc/munin/plugins/nextcloud_multi.py_firstintance.nextcloud.tld`
+
+`ln -s /path/to/nextcloud/munin/plugins/nextcloud_multi.py /etc/munin/plugins/nextcloud_multi.py_second.nextcloud.tld`
+
 
 After this has been done the munin-node needs to be restarted to facilitate the new plugins.
 `systemctl restart munin-node`
