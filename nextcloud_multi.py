@@ -23,10 +23,17 @@ import os
 
 class NextcloudMultiGraph:
     def __init__(self):
+        title = os.path.basename(__file__)
+        title = title.split("nextcloud_apps.py_",1)[1]
+        if title:
+            title = ' on ' + title
+        else
+            title = ''
+
         self.config = [
             # users
             'multigraph nextcloud_users',
-            'graph_title Nextcloud User Activity',
+            'graph_title Nextcloud User Activity' + title,
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel connected users',
@@ -47,7 +54,7 @@ class NextcloudMultiGraph:
 
             # shares
             'multigraph nextcloud_shares',
-            'graph_title Nextcloud Shares',
+            'graph_title Nextcloud Shares' + title,
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel number of shares',
@@ -83,7 +90,7 @@ class NextcloudMultiGraph:
 
             # dbsize
             'multigraph nextcloud_dbsize',
-            'graph_title Nextcloud Database Size',
+            'graph_title Nextcloud Database Size' + title,
             'graph_args --base 1024 -l 0',
             'graph_vlabel size in byte',
             'graph_info graph showing the database size in byte',
@@ -95,7 +102,7 @@ class NextcloudMultiGraph:
 
             # available_updates
             'multigraph nextcloud_available_updates',
-            'graph_title Nextcloud available App updates',
+            'graph_title Nextcloud available App updates' + title,
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel updates available',
@@ -108,7 +115,7 @@ class NextcloudMultiGraph:
 
             # storages
             'multigraph nextcloud_storages',
-            'graph_title Nextcloud Storages',
+            'graph_title Nextcloud Storages' + title,
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel number',
@@ -129,7 +136,7 @@ class NextcloudMultiGraph:
 
             # filecount
             'multigraph nextcloud_filecount',
-            'graph_title Nextcloud Files',
+            'graph_title Nextcloud Files' + title,
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel number of files',

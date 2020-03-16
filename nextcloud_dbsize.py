@@ -19,9 +19,16 @@ import os
 
 class NextcloudDB:
     def __init__(self):
+        title = os.path.basename(__file__)
+        title = title.split("nextcloud_apps.py_",1)[1]
+        if title:
+            title = ' on ' + title
+        else
+            title = ''
+
         self.config = [
             # dbsize
-            'graph_title Nextcloud Database Size',
+            'graph_title Nextcloud Database Size' + title,
             'graph_args --base 1024 -l 0',
             'graph_vlabel size in byte',
             'graph_info graph showing the database size in byte',

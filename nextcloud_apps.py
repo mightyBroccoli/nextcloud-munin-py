@@ -19,9 +19,16 @@ import os
 
 class NextcloudApps:
     def __init__(self):
+        title = os.path.basename(__file__)
+        title = title.split("nextcloud_apps.py_",1)[1]
+        if title:
+            title = ' on ' + title
+        else
+            title = ''
+
         self.config = [
             # available_updates
-            'graph_title Nextcloud available App updates',
+            'graph_title Nextcloud available App updates' + title,
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel updates available',

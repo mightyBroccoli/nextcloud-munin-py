@@ -19,9 +19,16 @@ import os
 
 class NextcloudUsers:
     def __init__(self):
+        title = os.path.basename(__file__)
+        title = title.split("nextcloud_apps.py_",1)[1]
+        if title:
+            title = ' on ' + title
+        else
+            title = ''
+
         self.config = [
             # users
-            'graph_title Nextcloud User Activity',
+            'graph_title Nextcloud User Activity' + title,
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel connected users',
