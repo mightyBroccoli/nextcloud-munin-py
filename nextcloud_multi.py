@@ -27,7 +27,7 @@ class NextcloudMultiGraph:
         title = title.split("nextcloud_apps.py_",1)[1]
         if title:
             title = ' on ' + title
-        else
+        else:
             title = ''
 
         self.config = [
@@ -37,7 +37,7 @@ class NextcloudMultiGraph:
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel connected users',
-            'graph_info graph showing the number of connected user',
+            'graph_info graph showing the number of connected user' + title,
             'graph_category nextcloud',
             'last5minutes.label last 5 minutes',
             'last5minutes.info users connected in the last 5 minutes',
@@ -58,7 +58,7 @@ class NextcloudMultiGraph:
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel number of shares',
-            'graph_info graph showing the number of shares',
+            'graph_info graph showing the number of shares' + title,
             'graph_category nextcloud',
             'num_shares.label total number of shares',
             'num_shares.info current over all total of shares',
@@ -93,7 +93,7 @@ class NextcloudMultiGraph:
             'graph_title Nextcloud Database Size' + title,
             'graph_args --base 1024 -l 0',
             'graph_vlabel size in byte',
-            'graph_info graph showing the database size in byte',
+            'graph_info graph showing the database size in byte' + title,
             'graph_category nextcloud',
             'db_size.label database size in byte',
             'db_size.info users connected in the last 5 minutes',
@@ -106,7 +106,7 @@ class NextcloudMultiGraph:
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel updates available',
-            'graph_info graph showing the number of available app updates',
+            'graph_info graph showing the number of available app updates' + title,
             'graph_category nextcloud',
             'num_updates_available.label available app updates',
             'num_updates_available.info number of available app updates',
@@ -119,7 +119,7 @@ class NextcloudMultiGraph:
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel number',
-            'graph_info graph showing the number of storages',
+            'graph_info graph showing the number of storages' + title,
             'graph_category nextcloud',
             'num_storages.label total number of storages',
             'num_storages.info current over all total of storages',
@@ -140,7 +140,7 @@ class NextcloudMultiGraph:
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel number of files',
-            'graph_info graph showing the number of files',
+            'graph_info graph showing the number of files' + title,
             'graph_category nextcloud',
             'num_files.label number of files',
             'num_files.info current number of files in the repository',

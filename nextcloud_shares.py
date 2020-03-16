@@ -23,7 +23,7 @@ class NextcloudShares:
         title = title.split("nextcloud_apps.py_",1)[1]
         if title:
             title = ' on ' + title
-        else
+        else:
             title = ''
 
         self.config = [
@@ -32,7 +32,7 @@ class NextcloudShares:
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel number of shares',
-            'graph_info graph showing the number of shares',
+            'graph_info graph showing the number of shares' + title,
             'graph_category nextcloud',
             'num_shares.label total number of shares',
             'num_shares.info current over all total of shares',

@@ -23,7 +23,7 @@ class NextcloudDB:
         title = title.split("nextcloud_apps.py_",1)[1]
         if title:
             title = ' on ' + title
-        else
+        else:
             title = ''
 
         self.config = [
@@ -31,7 +31,7 @@ class NextcloudDB:
             'graph_title Nextcloud Database Size' + title,
             'graph_args --base 1024 -l 0',
             'graph_vlabel size in byte',
-            'graph_info graph showing the database size in byte',
+            'graph_info graph showing the database size in byte' + title,
             'graph_category nextcloud',
             'db_size.label database size in byte',
             'db_size.info users connected in the last 5 minutes',

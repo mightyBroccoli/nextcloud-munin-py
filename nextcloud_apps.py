@@ -23,7 +23,7 @@ class NextcloudApps:
         title = title.split("nextcloud_apps.py_",1)[1]
         if title:
             title = ' on ' + title
-        else
+        else:
             title = ''
 
         self.config = [
@@ -32,7 +32,7 @@ class NextcloudApps:
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel updates available',
-            'graph_info graph showing the number of available app updates',
+            'graph_info graph showing the number of available app updates' + title,
             'graph_category nextcloud',
             'num_updates_available.label available app updates',
             'num_updates_available.info number of available app updates',

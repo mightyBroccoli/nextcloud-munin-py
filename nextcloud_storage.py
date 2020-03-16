@@ -23,7 +23,7 @@ class NextcloudStorage:
         title = title.split("nextcloud_apps.py_",1)[1]
         if title:
             title = ' on ' + title
-        else
+        else:
             title = ''
 
         self.config = [
@@ -32,7 +32,7 @@ class NextcloudStorage:
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel number',
-            'graph_info graph showing the number of storages',
+            'graph_info graph showing the number of storages' + title,
             'graph_category nextcloud',
             'num_storages.label total number of storages',
             'num_storages.info current over all total of storages',

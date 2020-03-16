@@ -23,7 +23,7 @@ class NextcloudUsers:
         title = title.split("nextcloud_apps.py_",1)[1]
         if title:
             title = ' on ' + title
-        else
+        else:
             title = ''
 
         self.config = [
@@ -32,7 +32,7 @@ class NextcloudUsers:
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel connected users',
-            'graph_info graph showing the number of connected user',
+            'graph_info graph showing the number of connected user' + title,
             'graph_category nextcloud',
             'last5minutes.label last 5 minutes',
             'last5minutes.info users connected in the last 5 minutes',
