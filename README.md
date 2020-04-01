@@ -27,7 +27,7 @@ To use these plugins properly some configuration parameters need to be added to 
 [nextcloud_*]
 env.username username
 env.password password or logintoken
-env.url https://URL.TO.YOUR.NEXTCLOUD.tld/ocs/v2.php/apps/serverinfo/api/v1/info
+env.url https://URL.TO.YOUR.NEXTCLOUD.domain.tld
 ```
 
 ### activating the plugin

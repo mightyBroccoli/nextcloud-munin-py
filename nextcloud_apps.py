@@ -52,7 +52,8 @@ class NextcloudApps:
             s.headers.update({'Accept': 'application/json'})
 
             # request the data
-            r = s.get(os.environ.get('url'))
+            url = ''.join([os.environ.get('url'), '/ocs/v2.php/apps/serverinfo/api/v1/info'])
+            r = s.get(url)
 
         # if status code is successful continue
         if r.status_code == 200:
