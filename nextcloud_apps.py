@@ -15,32 +15,46 @@
 import requests
 import sys
 import os
+import re
 
 
 class NextcloudApps:
     def __init__(self):
+        instance = self.get_instance()
         self.config = [
             # available_updates
-            'graph_title Nextcloud available App updates',
+            ''.join(['graph_title Nextcloud available App updates', instance['title']]),
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel updates available',
             'graph_info graph showing the number of available app updates',
             'graph_category nextcloud',
-            'num_updates_available.label available app updates',
-            'num_updates_available.info number of available app updates',
-            'num_updates_available.min 0',
-            'num_updates_available.warning 1'
+            instance['suffix'].join(['num_updates_available', '.label available app updates']),
+            instance['suffix'].join(['num_updates_available', '.info number of available app updates']),
+            instance['suffix'].join(['num_updates_available', '.min 0']),
+            instance['suffix'].join(['num_updates_available', '.warning 1'])
         ]
         self.result = list()
 
+    def get_instance(self):
+        self.instance = { 'title': '', 'suffix': '' }
+        instance_filename = os.path.basename(__file__)
+        instance_tuple = instance_filename.rpartition('_')
+
+        if 'nextcloud' != instance_tuple[0]:
+            self.instance['title'] = ' on ' + instance_tuple[2]
+            self.instance['suffix'] = '_' + re.sub(r'\W+', '', instance_tuple[2])
+
+        return self.instance
+
     def parse_data(self, api_response):
+        instance = self.get_instance()
         # precaution for Nextcloud versions prior to version 14
         version = api_response['ocs']['data']['nextcloud']['system']['version'].split(sep=".")
 
         if int(version[0]) >= 14:
             num_updates_available = api_response['ocs']['data']['nextcloud']['system']['apps']['num_updates_available']
-            self.result.append('num_updates_available.value %s' % num_updates_available)
+            self.result.append(instance['suffix'].join(['num_updates_available','.value %s']) % num_updates_available)
 
     def run(self):
         # init request session with specific header and credentials
