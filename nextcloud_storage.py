@@ -15,40 +15,54 @@
 import requests
 import sys
 import os
+import re
 
 
 class NextcloudStorage:
     def __init__(self):
+        instance = self.get_instance()
         self.config = [
             # storages
-            'graph_title Nextcloud Storages',
+            ''.join(['graph_title Nextcloud Storages', instance['title']]),
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel number',
             'graph_info graph showing the number of storages',
             'graph_category nextcloud',
-            'num_storages.label total number of storages',
-            'num_storages.info current over all total of storages',
-            'num_storages.min 0',
-            'num_storages_local.label number of local storages',
-            'num_storages_local.info current over all total of storage',
-            'num_storages_local.min 0',
-            'num_storages_home.label number of home storages',
-            'num_storages_home.info current over all total of storage',
-            'num_storages_home.min 0',
-            'num_storages_other.label number of other storages',
-            'num_storages_other.info current over all total of storage',
-            'num_storages_other.min 0'
+            instance['suffix'].join(['num_storages', '.label total number of storages']),
+            instance['suffix'].join(['num_storages', '.info current over all total of storages']),
+            instance['suffix'].join(['num_storages.min 0']),
+            instance['suffix'].join(['num_storages_local', '.label number of local storages']),
+            instance['suffix'].join(['num_storages_local', '.info current over all total of storage']),
+            instance['suffix'].join(['num_storages_local.min 0']),
+            instance['suffix'].join(['num_storages_home', '.label number of home storages']),
+            instance['suffix'].join(['num_storages_home', '.info current over all total of storage']),
+            instance['suffix'].join(['num_storages_home.min 0']),
+            instance['suffix'].join(['num_storages_other', '.label number of other storages']),
+            instance['suffix'].join(['num_storages_other', '.info current over all total of storage']),
+            instance['suffix'].join(['num_storages_other.min 0'])
         ]
         self.result = list()
 
+    def get_instance(self):
+        self.instance = { 'title': '', 'suffix': '' }
+        instance_filename = os.path.basename(__file__)
+        instance_tuple = instance_filename.rpartition('_')
+
+        if 'nextcloud' != instance_tuple[0]:
+            self.instance['title'] = ' on ' + instance_tuple[2]
+            self.instance['suffix'] = '_' + re.sub(r'\W+', '', instance_tuple[2])
+
+        return self.instance
+
     def parse_data(self, api_response):
+        instance = self.get_instance()
         storage = api_response['ocs']['data']['nextcloud']['storage']
 
         # append for every key in storage the key and the value if the key starts with "num"
         for key, value in storage.items():
             if key.startswith('num_storages'):
-                self.result.append('{k}.value {v}'.format(k=key, v=value))
+                self.result.append(instance['suffix'].join(['{k}','.value {v}']).format(k=key, v=value))
 
     def run(self):
         # init request session with specific header and credentials

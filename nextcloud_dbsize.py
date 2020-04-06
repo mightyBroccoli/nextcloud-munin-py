@@ -15,27 +15,41 @@
 import requests
 import sys
 import os
+import re
 
 
 class NextcloudDB:
     def __init__(self):
+        instance = self.get_instance()
         self.config = [
             # dbsize
-            'graph_title Nextcloud Database Size',
+            ''.join(['graph_title Nextcloud Database Size', instance['title']]),
             'graph_args --base 1024 -l 0',
             'graph_vlabel size in byte',
             'graph_info graph showing the database size in byte',
             'graph_category nextcloud',
-            'db_size.label database size in byte',
-            'db_size.info users connected in the last 5 minutes',
-            'db_size.draw AREA',
-            'db_size.min 0'
+            instance['suffix'].join(['db_size', '.label database size in byte']),
+            instance['suffix'].join(['db_size', '.info users connected in the last 5 minutes']),
+            instance['suffix'].join(['db_size', '.draw AREA']),
+            instance['suffix'].join(['db_size', '.min 0'])
         ]
         self.result = list()
 
+    def get_instance(self):
+        self.instance = { 'title': '', 'suffix': '' }
+        instance_filename = os.path.basename(__file__)
+        instance_tuple = instance_filename.rpartition('_')
+
+        if 'nextcloud' != instance_tuple[0]:
+            self.instance['title'] = ' on ' + instance_tuple[2]
+            self.instance['suffix'] = '_' + re.sub(r'\W+', '', instance_tuple[2])
+
+        return self.instance
+
     def parse_data(self, api_response):
+        instance = self.get_instance()
         dbsize = api_response['ocs']['data']['server']['database']['size']
-        self.result.append('db_size.value %s' % dbsize)
+        self.result.append(instance['suffix'].join(['db_size','.value %s']) % dbsize)
 
     def run(self):
         # init request session with specific header and credentials

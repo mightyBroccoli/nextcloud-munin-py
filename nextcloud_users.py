@@ -15,40 +15,57 @@
 import requests
 import sys
 import os
+import re
 
 
 class NextcloudUsers:
     def __init__(self):
+        instance = self.get_instance()
         self.config = [
             # users
-            'graph_title Nextcloud User Activity',
+            ''.join(['graph_title Nextcloud User Activity', instance['title']]),
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel connected users',
             'graph_info graph showing the number of connected user',
             'graph_category nextcloud',
-            'last5minutes.label last 5 minutes',
-            'last5minutes.info users connected in the last 5 minutes',
-            'last5minutes.min 0',
-            'last1hour.label last hour',
-            'last1hour.info users connected in the last hour',
-            'last1hour.min 0',
-            'last24hours.label last 24 hours',
-            'last24hours.info users connected in the last 24 hours',
-            'last24hours.min 0',
-            'num_users.label number of users',
-            'num_users.info total number of users',
-            'num_users.min 0'
+            instance['suffix'].join(['last5minutes', '.label last 5 minutes']),
+            instance['suffix'].join(['last5minutes', '.info users connected in the last 5 minutes']),
+            instance['suffix'].join(['last5minutes', '.min 0']),
+            instance['suffix'].join(['last1hour', '.label last hour']),
+            instance['suffix'].join(['last1hour', '.info users connected in the last hour']),
+            instance['suffix'].join(['last1hour', '.min 0']),
+            instance['suffix'].join(['last24hours', '.label last 24 hours']),
+            instance['suffix'].join(['last24hours', '.info users connected in the last 24 hours']),
+            instance['suffix'].join(['last24hours', '.min 0']),
+            instance['suffix'].join(['num_users', '.label number of users']),
+            instance['suffix'].join(['num_users', '.info total number of users']),
+            instance['suffix'].join(['num_users', '.min 0'])
         ]
         self.result = list()
 
+    def get_instance(self):
+        self.instance = { 'title': '', 'suffix': '' }
+        instance_filename = os.path.basename(__file__)
+        instance_tuple = instance_filename.rpartition('_')
+
+        if 'nextcloud' != instance_tuple[0]:
+            self.instance['title'] = ' on ' + instance_tuple[2]
+            self.instance['suffix'] = '_' + re.sub(r'\W+', '', instance_tuple[2])
+
+        return self.instance
+
     def parse_data(self, api_response):
+        instance = self.get_instance()
         users = api_response['ocs']['data']['activeUsers']
         num_users = api_response['ocs']['data']['nextcloud']['storage']['num_users']
 
         # append for every key in users the key and the value to the results
         for key, value in users.items():
-            self.result.append('{k}.value {v}'.format(k=key, v=value))
+            self.result.append(instance['suffix'].join(['{k}','.value {v}']).format(k=key, v=value))
+
+        # append total number of users
+        self.result.append(instance['suffix'].join(['num_users','.value %s']) % num_users)
 
     def run(self):
         # init request session with specific header and credentials

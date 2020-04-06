@@ -15,55 +15,69 @@
 import requests
 import sys
 import os
+import re
 
 
 class NextcloudShares:
     def __init__(self):
+        instance = self.get_instance()
         self.config = [
             # shares
-            'graph_title Nextcloud Shares',
+            ''.join(['graph_title Nextcloud Shares', instance['title']]),
             'graph_args --base 1000 -l 0',
             'graph_printf %.0lf',
             'graph_vlabel number of shares',
             'graph_info graph showing the number of shares',
             'graph_category nextcloud',
-            'num_shares.label total number of shares',
-            'num_shares.info current over all total of shares',
-            'num_shares.min 0',
-            'num_shares_user.label user shares',
-            'num_shares_user.info current total of user shares',
-            'num_shares_user.min 0',
-            'num_shares_groups.label group shares',
-            'num_shares_groups.info current total of group shares',
-            'num_shares_groups.min 0',
-            'num_shares_link.label link shares',
-            'num_shares_link.info current total of shares through a link',
-            'num_shares_link.min 0',
-            'num_shares_mail.label mail shares',
-            'num_shares_mail.info current total of mail shares',
-            'num_shares_mail.min 0',
-            'num_shares_room.label room shares',
-            'num_shares_room.info current total of room shares',
-            'num_shares_room.min 0',
-            'num_shares_link_no_password.label link shares without a password',
-            'num_shares_link_no_password.info current total of shares through a link without a password protection',
-            'num_shares_link_no_password.min 0',
-            'num_fed_shares_sent.label federated shares sent',
-            'num_fed_shares_sent.info current total of federated shares sent',
-            'num_fed_shares_sent.min 0',
-            'num_fed_shares_received.label federated shares recieved',
-            'num_fed_shares_received.info current total of federated shares recieved',
-            'num_fed_shares_received.min 0'
+            instance['suffix'].join(['num_shares', '.label total number of shares']),
+            instance['suffix'].join(['num_shares', '.info current over all total of shares']),
+            instance['suffix'].join(['num_shares', '.min 0']),
+            instance['suffix'].join(['num_shares_user', '.label user shares']),
+            instance['suffix'].join(['num_shares_user', '.info current total of user shares']),
+            instance['suffix'].join(['num_shares_user', '.min 0']),
+            instance['suffix'].join(['num_shares_groups', '.label group shares']),
+            instance['suffix'].join(['num_shares_groups', '.info current total of group shares']),
+            instance['suffix'].join(['num_shares_groups', '.min 0']),
+            instance['suffix'].join(['num_shares_link', '.label link shares']),
+            instance['suffix'].join(['num_shares_link', '.info current total of shares through a link']),
+            instance['suffix'].join(['num_shares_link', '.min 0']),
+            instance['suffix'].join(['num_shares_mail', '.label mail shares']),
+            instance['suffix'].join(['num_shares_mail', '.info current total of mail shares']),
+            instance['suffix'].join(['num_shares_mail', '.min 0']),
+            instance['suffix'].join(['num_shares_room', '.label room shares']),
+            instance['suffix'].join(['num_shares_room', '.info current total of room shares']),
+            instance['suffix'].join(['num_shares_room', '.min 0']),
+            instance['suffix'].join(['num_shares_link_no_password', '.label link shares without a password']),
+            instance['suffix'].join(['num_shares_link_no_password', '.info current total of shares through a link without a password protection']),
+            instance['suffix'].join(['num_shares_link_no_password', '.min 0']),
+            instance['suffix'].join(['num_fed_shares_sent', '.label federated shares sent']),
+            instance['suffix'].join(['num_fed_shares_sent', '.info current total of federated shares sent']),
+            instance['suffix'].join(['num_fed_shares_sent', '.min 0']),
+            instance['suffix'].join(['num_fed_shares_received', '.label federated shares recieved']),
+            instance['suffix'].join(['num_fed_shares_received', '.info current total of federated shares recieved']),
+            instance['suffix'].join(['num_fed_shares_received', '.min 0'])
         ]
         self.result = list()
 
+    def get_instance(self):
+        self.instance = { 'title': '', 'suffix': '' }
+        instance_filename = os.path.basename(__file__)
+        instance_tuple = instance_filename.rpartition('_')
+
+        if 'nextcloud' != instance_tuple[0]:
+            self.instance['title'] = ' on ' + instance_tuple[2]
+            self.instance['suffix'] = '_' + re.sub(r'\W+', '', instance_tuple[2])
+
+        return self.instance
+
     def parse_data(self, api_response):
+        instance = self.get_instance()
         shares = api_response['ocs']['data']['nextcloud']['shares']
 
         # append for every key in shares the key and the value if the key starts with "num"
         for key, value in shares.items():
             if key.startswith('num'):
-                self.result.append('{k}.value {v}'.format(k=key, v=value))
+                self.result.append(instance['suffix'].join(['{k}','.value {v}']).format(k=key, v=value))
 
     def run(self):
         # init request session with specific header and credentials
